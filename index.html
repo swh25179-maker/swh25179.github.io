@@ -1,7 +1,722 @@
-<html>
-<head><title> AISW교실 3기
-</title>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>신재생 에너지 알아보기 | AISW교실 3기</title>
+<style>
+  :root {
+    --solar: #f5a623;
+    --wind: #4aa8d8;
+    --hydro: #2e86ab;
+    --geo: #c0392b;
+    --bio: #6a994e;
+    --tidal: #1b4965;
+    --bg: #f7f9fb;
+    --card-bg: #ffffff;
+    --text: #1f2937;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: "Pretendard", "Malgun Gothic", "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: #ffffffee;
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+  }
+
+  .logo {
+    font-weight: 800;
+    font-size: 1.15rem;
+    color: #14532d;
+  }
+
+  nav ul {
+    list-style: none;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  nav a {
+    text-decoration: none;
+    color: var(--text);
+    font-size: 0.92rem;
+    padding: 8px 12px;
+    border-radius: 20px;
+    transition: background 0.2s, color 0.2s;
+    white-space: nowrap;
+  }
+
+  nav a:hover, nav a.active {
+    background: #14532d;
+    color: #fff;
+  }
+
+  .hero {
+    text-align: center;
+    padding: 70px 20px 50px;
+    background: linear-gradient(160deg, #e8f5e9 0%, #f7f9fb 70%);
+  }
+
+  .hero h1 {
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    color: #14532d;
+    margin-bottom: 14px;
+  }
+
+  .hero p {
+    color: var(--muted);
+    max-width: 640px;
+    margin: 0 auto 26px;
+    font-size: 1.02rem;
+  }
+
+  .hero-badges {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .badge {
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 10px 20px 60px;
+  }
+
+  section.energy {
+    scroll-margin-top: 80px;
+    margin: 46px 0;
+  }
+
+  .energy-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  .icon-badge {
+    width: 54px;
+    height: 54px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    color: #fff;
+    flex-shrink: 0;
+  }
+
+  .energy-header h2 {
+    font-size: 1.4rem;
+    color: var(--text);
+  }
+
+  .energy-header span.subtitle {
+    display: block;
+    font-size: 0.88rem;
+    color: var(--muted);
+    font-weight: 400;
+    margin-top: 2px;
+  }
+
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 22px 24px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+  }
+
+  .card p.desc {
+    margin-bottom: 16px;
+    color: #374151;
+  }
+
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  .mini-box {
+    border-radius: 12px;
+    padding: 16px;
+    background: #f9fafb;
+    border: 1px solid var(--border);
+  }
+
+  .mini-box h3 {
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .mini-box ul {
+    padding-left: 18px;
+    font-size: 0.88rem;
+    color: #374151;
+  }
+
+  .mini-box li { margin-bottom: 6px; }
+
+  .mini-box.effect { border-left: 4px solid #3b82f6; }
+  .mini-box.use { border-left: 4px solid #8b5cf6; }
+  .mini-box.pro { border-left: 4px solid #22c55e; }
+  .mini-box.con { border-left: 4px solid #ef4444; }
+
+  .grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  @media (max-width: 800px) {
+    .grid-3, .grid-4 { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 520px) {
+    .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    nav ul { justify-content: center; }
+    .nav-wrap { flex-direction: column; gap: 10px; }
+  }
+
+  .compare-section {
+    margin-top: 60px;
+  }
+
+  .compare-section h2 {
+    text-align: center;
+    color: #14532d;
+    margin-bottom: 22px;
+    font-size: 1.4rem;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 720px;
+    background: #fff;
+    font-size: 0.88rem;
+  }
+
+  th, td {
+    padding: 12px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  th {
+    background: #14532d;
+    color: #fff;
+    position: sticky;
+    top: 0;
+  }
+
+  tr:hover td { background: #f3faf4; }
+
+  footer {
+    text-align: center;
+    padding: 26px 20px 40px;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+
+  .to-top {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #14532d;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    font-size: 1.2rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+  }
+  .to-top.show { opacity: 1; pointer-events: auto; }
+</style>
 </head>
-<body> 바이브코딩해보기11
+<body>
+
+<header>
+  <div class="nav-wrap">
+    <div class="logo">🌍 신재생 에너지 도감</div>
+    <nav>
+      <ul id="nav-links">
+        <li><a href="#solar">태양광</a></li>
+        <li><a href="#wind">풍력</a></li>
+        <li><a href="#hydro">수력</a></li>
+        <li><a href="#geo">지열</a></li>
+        <li><a href="#bio">바이오매스</a></li>
+        <li><a href="#tidal">조력·파력</a></li>
+        <li><a href="#compare">비교표</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <h1>신재생 에너지, 한눈에 알아보기</h1>
+  <p>태양광부터 조력·파력까지, 각 신재생 에너지가 어떤 효과를 내고 어디에 쓰이는지, 장점과 단점은 무엇인지 정리했습니다.</p>
+  <div class="hero-badges">
+    <span class="badge" style="background:var(--solar)">☀️ 태양광</span>
+    <span class="badge" style="background:var(--wind)">💨 풍력</span>
+    <span class="badge" style="background:var(--hydro)">💧 수력</span>
+    <span class="badge" style="background:var(--geo)">🌋 지열</span>
+    <span class="badge" style="background:var(--bio)">🌱 바이오매스</span>
+    <span class="badge" style="background:var(--tidal)">🌊 조력·파력</span>
+  </div>
+</section>
+
+<main>
+
+  <!-- 태양광 -->
+  <section class="energy" id="solar">
+    <div class="energy-header">
+      <div class="icon-badge" style="background:var(--solar)">☀️</div>
+      <div>
+        <h2>태양광(태양열) 에너지</h2>
+        <span class="subtitle">태양빛을 전기 또는 열로 변환하는 에너지</span>
+      </div>
+    </div>
+    <div class="card">
+      <p class="desc">태양전지(패널)를 이용해 빛 에너지를 직접 전기로 바꾸거나, 집열판으로 열을 모아 온수·난방에 활용합니다. 설치가 비교적 자유로워 가정용부터 대규모 발전 단지까지 폭넓게 쓰입니다.</p>
+      <div class="grid-4">
+        <div class="mini-box effect">
+          <h3>📌 효과</h3>
+          <ul>
+            <li>화석연료 대비 온실가스 배출 감소</li>
+            <li>미세먼지·대기오염 저감</li>
+            <li>가정·건물 단위 자가발전 가능</li>
+          </ul>
+        </div>
+        <div class="mini-box use">
+          <h3>🏠 활용 분야</h3>
+          <ul>
+            <li>주택·건물 옥상 태양광 패널</li>
+            <li>대규모 태양광 발전소</li>
+            <li>가로등, 계산기 등 소형 전자기기</li>
+            <li>태양열 온수기·난방</li>
+          </ul>
+        </div>
+        <div class="mini-box pro">
+          <h3>👍 장점</h3>
+          <ul>
+            <li>연료비가 들지 않고 무한한 자원</li>
+            <li>발전 중 오염물질 배출 없음</li>
+            <li>소규모 설치도 가능해 확장성 높음</li>
+            <li>유지보수가 비교적 간단</li>
+          </ul>
+        </div>
+        <div class="mini-box con">
+          <h3>👎 단점</h3>
+          <ul>
+            <li>날씨·계절·일조량에 따라 발전량 변동</li>
+            <li>야간 발전 불가 (저장장치 필요)</li>
+            <li>넓은 설치 부지 필요</li>
+            <li>초기 설치 비용이 높음</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 풍력 -->
+  <section class="energy" id="wind">
+    <div class="energy-header">
+      <div class="icon-badge" style="background:var(--wind)">💨</div>
+      <div>
+        <h2>풍력 에너지</h2>
+        <span class="subtitle">바람의 운동에너지로 터빈을 돌려 전기를 생산</span>
+      </div>
+    </div>
+    <div class="card">
+      <p class="desc">바람이 많이 부는 지역에 풍력 터빈을 설치해 회전력을 전기로 변환합니다. 육상뿐 아니라 해상에도 대규모 단지를 조성할 수 있어 국내외에서 빠르게 성장하는 에너지원입니다.</p>
+      <div class="grid-4">
+        <div class="mini-box effect">
+          <h3>📌 효과</h3>
+          <ul>
+            <li>대규모 전력 공급으로 화석연료 대체</li>
+            <li>온실가스·대기오염 감소</li>
+            <li>해상풍력은 어업 자원과 병행 가능</li>
+          </ul>
+        </div>
+        <div class="mini-box use">
+          <h3>🏭 활용 분야</h3>
+          <ul>
+            <li>육상·해상 풍력 발전 단지</li>
+            <li>도서·산간 지역 독립 전원</li>
+            <li>소형 풍력기(가로등, 선박 보조전원)</li>
+          </ul>
+        </div>
+        <div class="mini-box pro">
+          <h3>👍 장점</h3>
+          <ul>
+            <li>발전 단가가 신재생 에너지 중 낮은 편</li>
+            <li>넓은 면적 대비 대용량 발전 가능</li>
+            <li>야간에도 바람만 있으면 발전 가능</li>
+          </ul>
+        </div>
+        <div class="mini-box con">
+          <h3>👎 단점</h3>
+          <ul>
+            <li>바람 세기가 일정하지 않아 출력 변동</li>
+            <li>소음 및 경관 훼손 문제</li>
+            <li>조류 충돌 등 생태계 영향 우려</li>
+            <li>적지(바람이 좋은 부지)가 제한적</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 수력 -->
+  <section class="energy" id="hydro">
+    <div class="energy-header">
+      <div class="icon-badge" style="background:var(--hydro)">💧</div>
+      <div>
+        <h2>수력 에너지</h2>
+        <span class="subtitle">물의 낙차와 흐름을 이용해 터빈을 회전시켜 발전</span>
+      </div>
+    </div>
+    <div class="card">
+      <p class="desc">댐이나 하천의 물 흐름, 낙차를 이용해 터빈을 돌려 전기를 생산합니다. 대규모 댐 발전부터 소하천을 이용하는 소수력 발전까지 규모가 다양합니다.</p>
+      <div class="grid-4">
+        <div class="mini-box effect">
+          <h3>📌 효과</h3>
+          <ul>
+            <li>안정적이고 예측 가능한 전력 생산</li>
+            <li>홍수 조절, 용수 공급 등 다목적 효과</li>
+            <li>온실가스 배출이 거의 없음</li>
+          </ul>
+        </div>
+        <div class="mini-box use">
+          <h3>🏞️ 활용 분야</h3>
+          <ul>
+            <li>대형 댐 수력 발전소</li>
+            <li>소하천 이용 소수력 발전</li>
+            <li>양수식 발전(에너지 저장용)</li>
+          </ul>
+        </div>
+        <div class="mini-box pro">
+          <h3>👍 장점</h3>
+          <ul>
+            <li>날씨 영향이 적어 발전량이 안정적</li>
+            <li>수명이 길고 운영비가 저렴</li>
+            <li>전력 수요에 맞춰 출력 조절 용이</li>
+          </ul>
+        </div>
+        <div class="mini-box con">
+          <h3>👎 단점</h3>
+          <ul>
+            <li>댐 건설로 인한 생태계·주거지 파괴</li>
+            <li>초기 건설비용과 기간이 큼</li>
+            <li>강수량 변화(가뭄)에 취약</li>
+            <li>적합한 지형이 제한적</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 지열 -->
+  <section class="energy" id="geo">
+    <div class="energy-header">
+      <div class="icon-badge" style="background:var(--geo)">🌋</div>
+      <div>
+        <h2>지열 에너지</h2>
+        <span class="subtitle">지구 내부의 열을 끌어올려 전기·난방에 활용</span>
+      </div>
+    </div>
+    <div class="card">
+      <p class="desc">땅속 깊은 곳의 뜨거운 열(마그마열, 지하수열 등)을 이용해 증기를 만들어 터빈을 돌리거나, 냉난방 시스템(지열 히트펌프)에 직접 활용합니다.</p>
+      <div class="grid-4">
+        <div class="mini-box effect">
+          <h3>📌 효과</h3>
+          <ul>
+            <li>날씨와 무관하게 24시간 안정적 공급</li>
+            <li>냉난방 에너지 효율 대폭 개선</li>
+            <li>온실가스 배출이 매우 적음</li>
+          </ul>
+        </div>
+        <div class="mini-box use">
+          <h3>🏢 활용 분야</h3>
+          <ul>
+            <li>지열 발전소(화산·지진대 지역)</li>
+            <li>건물 냉난방용 지열 히트펌프</li>
+            <li>온천, 농업용 온실 난방</li>
+          </ul>
+        </div>
+        <div class="mini-box pro">
+          <h3>👍 장점</h3>
+          <ul>
+            <li>날씨·계절 영향 없이 연중 안정적</li>
+            <li>발전소 부지가 작아도 운영 가능</li>
+            <li>냉난방 동시 활용으로 효율 높음</li>
+          </ul>
+        </div>
+        <div class="mini-box con">
+          <h3>👎 단점</h3>
+          <ul>
+            <li>초기 시추·설비 비용이 매우 높음</li>
+            <li>적합한 지열 자원 지역이 한정적</li>
+            <li>지반 침하·소규모 지진 유발 가능성</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 바이오매스 -->
+  <section class="energy" id="bio">
+    <div class="energy-header">
+      <div class="icon-badge" style="background:var(--bio)">🌱</div>
+      <div>
+        <h2>바이오매스 에너지</h2>
+        <span class="subtitle">동식물 유기물(폐기물·작물 등)을 연료로 활용</span>
+      </div>
+    </div>
+    <div class="card">
+      <p class="desc">농업 부산물, 목재 폐기물, 음식물 쓰레기, 가축 분뇨 등 유기성 자원을 태우거나 발효시켜 열·전기·바이오연료(바이오디젤, 바이오가스 등)를 얻습니다.</p>
+      <div class="grid-4">
+        <div class="mini-box effect">
+          <h3>📌 효과</h3>
+          <ul>
+            <li>폐기물 재활용 및 처리 문제 해결</li>
+            <li>화석연료 사용 대체</li>
+            <li>탄소중립적 순환(식물이 자랄 때 흡수한 탄소만큼 배출)</li>
+          </ul>
+        </div>
+        <div class="mini-box use">
+          <h3>🚜 활용 분야</h3>
+          <ul>
+            <li>바이오매스 발전소(목재펠릿 등)</li>
+            <li>바이오디젤·바이오에탄올 연료</li>
+            <li>가축분뇨·음식물 폐기물 바이오가스화</li>
+            <li>농촌·산간 지역 난방</li>
+          </ul>
+        </div>
+        <div class="mini-box pro">
+          <h3>👍 장점</h3>
+          <ul>
+            <li>폐기물을 자원으로 재활용</li>
+            <li>기존 화력발전 설비를 일부 활용 가능</li>
+            <li>필요할 때 저장했다가 사용 가능</li>
+          </ul>
+        </div>
+        <div class="mini-box con">
+          <h3>👎 단점</h3>
+          <ul>
+            <li>연소 과정에서 대기오염물질 발생 가능</li>
+            <li>원료 수집·운반에 비용과 에너지 소모</li>
+            <li>대량 재배 시 산림 훼손·식량 경쟁 우려</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 조력/파력 -->
+  <section class="energy" id="tidal">
+    <div class="energy-header">
+      <div class="icon-badge" style="background:var(--tidal)">🌊</div>
+      <div>
+        <h2>조력·파력 에너지</h2>
+        <span class="subtitle">밀물·썰물의 조수간만 차와 파도의 힘을 이용</span>
+      </div>
+    </div>
+    <div class="card">
+      <p class="desc">조력 발전은 밀물과 썰물의 수위 차를 이용해 터빈을 돌리고, 파력 발전은 파도의 상하 운동 에너지를 전기로 변환합니다. 삼면이 바다인 한국에서 잠재력이 큰 에너지원입니다.</p>
+      <div class="grid-4">
+        <div class="mini-box effect">
+          <h3>📌 효과</h3>
+          <ul>
+            <li>조수·파도 주기가 규칙적이라 예측 가능</li>
+            <li>해안 지역 전력 자립도 향상</li>
+            <li>온실가스 배출 없는 청정 발전</li>
+          </ul>
+        </div>
+        <div class="mini-box use">
+          <h3>⚓ 활용 분야</h3>
+          <ul>
+            <li>조력 발전소(방조제 활용)</li>
+            <li>해상 파력 발전 부이·설비</li>
+            <li>등대·부표 등 해양 소형 전원</li>
+          </ul>
+        </div>
+        <div class="mini-box pro">
+          <h3>👍 장점</h3>
+          <ul>
+            <li>조수 주기가 일정해 발전량 예측이 쉬움</li>
+            <li>태양광·풍력과 달리 날씨 영향이 적음</li>
+            <li>넓은 해안선을 활용할 잠재력이 큼</li>
+          </ul>
+        </div>
+        <div class="mini-box con">
+          <h3>👎 단점</h3>
+          <ul>
+            <li>설치 가능한 지역(조차가 큰 해안)이 제한적</li>
+            <li>초기 건설 비용이 매우 높음</li>
+            <li>갯벌 생태계 파괴 우려</li>
+            <li>해수 부식으로 설비 유지보수 부담</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 비교표 -->
+  <section class="compare-section" id="compare">
+    <h2>📊 신재생 에너지 한눈에 비교하기</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>에너지원</th>
+            <th>핵심 효과</th>
+            <th>대표 활용처</th>
+            <th>주요 장점</th>
+            <th>주요 단점</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>☀️ 태양광</td>
+            <td>온실가스·미세먼지 저감</td>
+            <td>건물 옥상, 대규모 발전소</td>
+            <td>무한한 자원, 소규모 설치 가능</td>
+            <td>일조량 의존, 야간 발전 불가</td>
+          </tr>
+          <tr>
+            <td>💨 풍력</td>
+            <td>대용량 청정 전력 공급</td>
+            <td>육상·해상 풍력 단지</td>
+            <td>낮은 발전 단가, 대용량 발전</td>
+            <td>바람 변동성, 소음·경관 문제</td>
+          </tr>
+          <tr>
+            <td>💧 수력</td>
+            <td>안정적 전력·홍수 조절</td>
+            <td>댐, 소수력 발전소</td>
+            <td>발전량 안정, 긴 수명</td>
+            <td>생태계 파괴, 높은 건설비</td>
+          </tr>
+          <tr>
+            <td>🌋 지열</td>
+            <td>24시간 안정적 냉난방·발전</td>
+            <td>지열 발전소, 냉난방 히트펌프</td>
+            <td>날씨 무관 연중 안정적</td>
+            <td>높은 시추 비용, 지역 한정</td>
+          </tr>
+          <tr>
+            <td>🌱 바이오매스</td>
+            <td>폐기물 재활용, 탄소순환</td>
+            <td>바이오연료, 목재펠릿 발전</td>
+            <td>폐자원 활용, 저장 가능</td>
+            <td>대기오염 가능성, 원료 운반 비용</td>
+          </tr>
+          <tr>
+            <td>🌊 조력·파력</td>
+            <td>예측 가능한 청정 전력</td>
+            <td>조력 발전소, 파력 부이</td>
+            <td>주기 예측 용이, 큰 잠재력</td>
+            <td>설치 지역 제한, 갯벌 훼손 우려</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  🌍 신재생 에너지 학습 자료 · AISW교실 3기
+</footer>
+
+<a href="#" class="to-top" id="toTop">↑</a>
+
+<script>
+  // 네비게이션 활성화 표시 (스크롤 위치 기반)
+  const sections = document.querySelectorAll('section.energy, section.compare-section');
+  const navLinks = document.querySelectorAll('#nav-links a');
+
+  function setActiveLink() {
+    let currentId = '';
+    sections.forEach(sec => {
+      const rect = sec.getBoundingClientRect();
+      if (rect.top <= 100 && rect.bottom >= 100) {
+        currentId = sec.id;
+      }
+    });
+    navLinks.forEach(link => {
+      link.classList.toggle('active', link.getAttribute('href') === '#' + currentId);
+    });
+  }
+
+  const toTopBtn = document.getElementById('toTop');
+  function toggleToTop() {
+    if (window.scrollY > 400) {
+      toTopBtn.classList.add('show');
+    } else {
+      toTopBtn.classList.remove('show');
+    }
+  }
+
+  window.addEventListener('scroll', () => {
+    setActiveLink();
+    toggleToTop();
+  });
+
+  toTopBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+</script>
+
 </body>
 </html>
