@@ -3,20 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>신재생 에너지 알아보기 | AISW교실 3기</title>
+<title>MPPT(최대전력점 추적) 알아보기 | AISW교실 3기</title>
 <style>
   :root {
+    --accent: #14532d;
     --solar: #f5a623;
-    --wind: #4aa8d8;
-    --hydro: #2e86ab;
-    --geo: #c0392b;
-    --bio: #6a994e;
-    --tidal: #1b4965;
     --bg: #f7f9fb;
     --card-bg: #ffffff;
     --text: #1f2937;
     --muted: #6b7280;
     --border: #e5e7eb;
+    --po: #2563eb;
+    --inc: #16a34a;
+    --cv: #ea580c;
+    --mpp: #ef4444;
+    --local: #9ca3af;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -38,18 +39,22 @@
   }
 
   .nav-wrap {
-    max-width: 1100px;
+    max-width: 1180px;
     margin: 0 auto;
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 14px 20px;
+    gap: 12px;
+    flex-wrap: wrap;
   }
 
   .logo {
     font-weight: 800;
-    font-size: 1.15rem;
-    color: #14532d;
+    font-size: 1.05rem;
+    color: var(--accent);
+    text-decoration: none;
+    white-space: nowrap;
   }
 
   nav ul {
@@ -62,7 +67,7 @@
   nav a {
     text-decoration: none;
     color: var(--text);
-    font-size: 0.92rem;
+    font-size: 0.9rem;
     padding: 8px 12px;
     border-radius: 20px;
     transition: background 0.2s, color 0.2s;
@@ -70,86 +75,40 @@
   }
 
   nav a:hover, nav a.active {
-    background: #14532d;
+    background: var(--accent);
     color: #fff;
   }
 
   .hero {
     text-align: center;
-    padding: 70px 20px 50px;
-    background: linear-gradient(160deg, #e8f5e9 0%, #f7f9fb 70%);
+    padding: 60px 20px 44px;
+    background: linear-gradient(160deg, #fff3dc 0%, #f7f9fb 70%);
   }
 
   .hero h1 {
-    font-size: clamp(1.8rem, 4vw, 2.6rem);
-    color: #14532d;
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    color: var(--accent);
     margin-bottom: 14px;
   }
 
   .hero p {
     color: var(--muted);
-    max-width: 640px;
-    margin: 0 auto 26px;
+    max-width: 720px;
+    margin: 0 auto;
     font-size: 1.02rem;
   }
 
-  .hero-badges {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-
-  .badge {
-    padding: 8px 16px;
-    border-radius: 999px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #fff;
-  }
-
   main {
-    max-width: 1100px;
+    max-width: 1180px;
     margin: 0 auto;
     padding: 10px 20px 60px;
   }
 
-  section.energy {
-    scroll-margin-top: 80px;
-    margin: 46px 0;
-  }
+  section { scroll-margin-top: 80px; margin: 50px 0; }
 
-  .energy-header {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-bottom: 18px;
-  }
-
-  .icon-badge {
-    width: 54px;
-    height: 54px;
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.6rem;
-    color: #fff;
-    flex-shrink: 0;
-  }
-
-  .energy-header h2 {
-    font-size: 1.4rem;
-    color: var(--text);
-  }
-
-  .energy-header span.subtitle {
-    display: block;
-    font-size: 0.88rem;
-    color: var(--muted);
-    font-weight: 400;
-    margin-top: 2px;
-  }
+  .section-head { margin-bottom: 18px; }
+  .section-head h2 { font-size: 1.35rem; color: var(--accent); }
+  .section-head span { display: block; margin-top: 4px; font-size: 0.9rem; color: var(--muted); }
 
   .card {
     background: var(--card-bg);
@@ -159,566 +118,901 @@
     box-shadow: 0 2px 10px rgba(0,0,0,0.03);
   }
 
-  .card p.desc {
-    margin-bottom: 16px;
-    color: #374151;
+  .card + .card { margin-top: 16px; }
+
+  .card p { color: #374151; margin-bottom: 10px; }
+  .card p:last-child { margin-bottom: 0; }
+  .card ul { padding-left: 20px; color: #374151; }
+  .card li { margin-bottom: 6px; }
+
+  .theory-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 18px;
   }
 
-  .grid-3 {
+  .loadline-box {
+    background: #f9fafb;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    font-size: 0.92rem;
+  }
+
+  .sim-layout {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 18px;
+    align-items: start;
+  }
+
+  .controls {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: sticky;
+    top: 90px;
+  }
+
+  .control-group label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.88rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .control-group .val { color: var(--solar); font-weight: 700; }
+  .control-group input[type=range] { width: 100%; }
+  .control-group .hint { font-size: 0.78rem; color: var(--muted); margin-top: 4px; }
+
+  .mode-tabs {
+    display: flex;
+    gap: 6px;
+    background: #f3f4f6;
+    padding: 4px;
+    border-radius: 12px;
+  }
+
+  .mode-tabs button {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 9px 6px;
+    border-radius: 9px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    color: var(--muted);
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .mode-tabs button.active {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .algo-choices { display: flex; flex-direction: column; gap: 8px; }
+  .algo-choice {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 0.86rem;
+  }
+  .algo-choice input { margin-top: 3px; }
+  .algo-choice strong { display: block; }
+  .algo-choice span.d { color: var(--muted); font-size: 0.8rem; }
+  .algo-choice.active { border-color: var(--accent); background: #f0fdf4; }
+
+  .btn-row { display: flex; gap: 8px; }
+  .btn {
+    flex: 1;
+    border: none;
+    border-radius: 10px;
+    padding: 10px;
+    font-weight: 700;
+    font-size: 0.88rem;
+    cursor: pointer;
+    color: #fff;
+    background: var(--accent);
+  }
+  .btn.secondary { background: #6b7280; }
+  .btn.warn { background: #ef4444; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    font-size: 0.85rem;
+    background: #f9fafb;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+  }
+  .metrics div span.mv { display: block; font-weight: 800; font-size: 1.05rem; color: var(--accent); }
+  .metrics div.eff span.mv { color: var(--solar); }
+
+  .charts { display: flex; flex-direction: column; gap: 16px; }
+  .chart-row { display: flex; gap: 16px; flex-wrap: wrap; }
+  .chart-box {
+    flex: 1 1 380px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 14px 16px 8px;
+  }
+  .chart-box h3 { font-size: 0.95rem; margin-bottom: 6px; color: var(--text); }
+  .chart-box canvas { width: 100%; height: auto; display: block; }
+
+  .shade-note {
+    display: none;
+    margin-top: 10px;
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    color: #9a3412;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+  }
+  .shade-note.show { display: block; }
+
+  .algo-cards {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 16px;
   }
+  .algo-card { border-top: 4px solid var(--border); }
+  .algo-card.po { border-top-color: var(--po); }
+  .algo-card.inc { border-top-color: var(--inc); }
+  .algo-card.cv { border-top-color: var(--cv); }
+  .algo-card h3 { margin-bottom: 8px; font-size: 1.02rem; }
 
-  .mini-box {
-    border-radius: 12px;
-    padding: 16px;
-    background: #f9fafb;
-    border: 1px solid var(--border);
-  }
+  .compare-actions { display: flex; justify-content: center; margin-bottom: 16px; }
 
-  .mini-box h3 {
-    font-size: 0.95rem;
-    margin-bottom: 8px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; font-size: 0.85rem; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
 
-  .mini-box ul {
-    padding-left: 18px;
-    font-size: 0.88rem;
-    color: #374151;
-  }
-
-  .mini-box li { margin-bottom: 6px; }
-
-  .mini-box.effect { border-left: 4px solid #3b82f6; }
-  .mini-box.use { border-left: 4px solid #8b5cf6; }
-  .mini-box.pro { border-left: 4px solid #22c55e; }
-  .mini-box.con { border-left: 4px solid #ef4444; }
-
-  .grid-4 {
-    grid-template-columns: repeat(4, 1fr);
-  }
-
-  @media (max-width: 800px) {
-    .grid-3, .grid-4 { grid-template-columns: 1fr 1fr; }
-  }
-  @media (max-width: 520px) {
-    .grid-3, .grid-4 { grid-template-columns: 1fr; }
-    nav ul { justify-content: center; }
-    .nav-wrap { flex-direction: column; gap: 10px; }
-  }
-
-  .compare-section {
-    margin-top: 60px;
-  }
-
-  .compare-section h2 {
-    text-align: center;
-    color: #14532d;
-    margin-bottom: 22px;
-    font-size: 1.4rem;
-  }
-
-  .table-wrap {
-    overflow-x: auto;
-    border-radius: 14px;
-    border: 1px solid var(--border);
-  }
-
-  table {
-    border-collapse: collapse;
-    width: 100%;
-    min-width: 720px;
-    background: #fff;
-    font-size: 0.88rem;
-  }
-
-  th, td {
-    padding: 12px 14px;
-    text-align: left;
-    border-bottom: 1px solid var(--border);
-    vertical-align: top;
-  }
-
-  th {
-    background: #14532d;
-    color: #fff;
-    position: sticky;
-    top: 0;
-  }
-
+  .table-wrap { overflow-x: auto; border-radius: 14px; border: 1px solid var(--border); margin-top: 16px; }
+  table { border-collapse: collapse; width: 100%; min-width: 620px; background: #fff; font-size: 0.88rem; }
+  th, td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+  th { background: var(--accent); color: #fff; }
   tr:hover td { background: #f3faf4; }
 
-  footer {
-    text-align: center;
-    padding: 26px 20px 40px;
-    color: var(--muted);
-    font-size: 0.85rem;
-  }
+  footer { text-align: center; padding: 26px 20px 40px; color: var(--muted); font-size: 0.85rem; }
 
-  .to-top {
-    position: fixed;
-    right: 20px;
-    bottom: 20px;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: #14532d;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none;
-    font-size: 1.2rem;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.25s;
+  @media (max-width: 900px) {
+    .sim-layout { grid-template-columns: 1fr; }
+    .controls { position: static; }
+    .theory-grid { grid-template-columns: 1fr; }
+    .algo-cards { grid-template-columns: 1fr; }
   }
-  .to-top.show { opacity: 1; pointer-events: auto; }
 </style>
 </head>
 <body>
 
 <header>
   <div class="nav-wrap">
-    <div class="logo">🌍 신재생 에너지 도감</div>
+    <div class="logo">☀️ MPPT 알아보기</div>
     <nav>
       <ul id="nav-links">
-        <li><a href="#solar">태양광</a></li>
-        <li><a href="#wind">풍력</a></li>
-        <li><a href="#hydro">수력</a></li>
-        <li><a href="#geo">지열</a></li>
-        <li><a href="#bio">바이오매스</a></li>
-        <li><a href="#tidal">조력·파력</a></li>
-        <li><a href="#compare">비교표</a></li>
+        <li><a href="#theory">원리</a></li>
+        <li><a href="#simulator">시뮬레이터</a></li>
+        <li><a href="#algorithms">알고리즘</a></li>
+        <li><a href="#compare">비교</a></li>
       </ul>
     </nav>
   </div>
 </header>
 
 <section class="hero">
-  <h1>신재생 에너지, 한눈에 알아보기</h1>
-  <p>태양광부터 조력·파력까지, 각 신재생 에너지가 어떤 효과를 내고 어디에 쓰이는지, 장점과 단점은 무엇인지 정리했습니다.</p>
-  <div class="hero-badges">
-    <span class="badge" style="background:var(--solar)">☀️ 태양광</span>
-    <span class="badge" style="background:var(--wind)">💨 풍력</span>
-    <span class="badge" style="background:var(--hydro)">💧 수력</span>
-    <span class="badge" style="background:var(--geo)">🌋 지열</span>
-    <span class="badge" style="background:var(--bio)">🌱 바이오매스</span>
-    <span class="badge" style="background:var(--tidal)">🌊 조력·파력</span>
-  </div>
+  <h1>☀️ 태양광 패널은 왜 최대 효율로 발전하지 못할까?</h1>
+  <p>태양광 패널의 전압-전류 특성은 일사량, 온도, 그늘에 따라 매 순간 바뀝니다. 이 변화를 실시간으로 쫓아가 항상 최대 출력점에서 동작하도록 만드는 기술이 <strong>MPPT(Maximum Power Point Tracking, 최대전력점 추적)</strong>입니다. 옴의 법칙을 바탕으로 한 시뮬레이션으로 그 원리를 직접 체험해 보세요.</p>
 </section>
 
 <main>
 
-  <!-- 태양광 -->
-  <section class="energy" id="solar">
-    <div class="energy-header">
-      <div class="icon-badge" style="background:var(--solar)">☀️</div>
-      <div>
-        <h2>태양광(태양열) 에너지</h2>
-        <span class="subtitle">태양빛을 전기 또는 열로 변환하는 에너지</span>
-      </div>
+  <!-- 원리 -->
+  <section id="theory">
+    <div class="section-head">
+      <h2>⚡ 옴의 법칙과 부하선 — 왜 최대 효율이 어려울까</h2>
+      <span>태양전지는 전압에 따라 전류가 비선형으로 변하는 특수한 전원입니다.</span>
     </div>
-    <div class="card">
-      <p class="desc">태양전지(패널)를 이용해 빛 에너지를 직접 전기로 바꾸거나, 집열판으로 열을 모아 온수·난방에 활용합니다. 설치가 비교적 자유로워 가정용부터 대규모 발전 단지까지 폭넓게 쓰입니다.</p>
-      <div class="grid-4">
-        <div class="mini-box effect">
-          <h3>📌 효과</h3>
-          <ul>
-            <li>화석연료 대비 온실가스 배출 감소</li>
-            <li>미세먼지·대기오염 저감</li>
-            <li>가정·건물 단위 자가발전 가능</li>
-          </ul>
-        </div>
-        <div class="mini-box use">
-          <h3>🏠 활용 분야</h3>
-          <ul>
-            <li>주택·건물 옥상 태양광 패널</li>
-            <li>대규모 태양광 발전소</li>
-            <li>가로등, 계산기 등 소형 전자기기</li>
-            <li>태양열 온수기·난방</li>
-          </ul>
-        </div>
-        <div class="mini-box pro">
-          <h3>👍 장점</h3>
-          <ul>
-            <li>연료비가 들지 않고 무한한 자원</li>
-            <li>발전 중 오염물질 배출 없음</li>
-            <li>소규모 설치도 가능해 확장성 높음</li>
-            <li>유지보수가 비교적 간단</li>
-          </ul>
-        </div>
-        <div class="mini-box con">
-          <h3>👎 단점</h3>
-          <ul>
-            <li>날씨·계절·일조량에 따라 발전량 변동</li>
-            <li>야간 발전 불가 (저장장치 필요)</li>
-            <li>넓은 설치 부지 필요</li>
-            <li>초기 설치 비용이 높음</li>
-          </ul>
-        </div>
+    <div class="theory-grid">
+      <div class="card">
+        <p>일반 배터리와 달리 태양전지는 전압(V)과 전류(I)가 곡선 관계를 갖습니다. 이 <strong>I-V 곡선</strong>은 빛의 세기(일사량), 온도, 그늘에 따라 순간순간 모양이 바뀝니다.</p>
+        <p>태양전지에 저항 부하를 연결하면, 옴의 법칙에 따라 <code>I = V / R</code>이라는 직선(부하선)이 그려집니다. 실제 동작점은 이 <strong>부하선과 I-V 곡선이 만나는 지점</strong>으로 정해집니다.</p>
+        <p>문제는 이 교차점이 항상 곡선의 정점(최대 출력점, MPP)과 일치하지 않는다는 것입니다. 게다가 일사량·온도·그늘이 바뀌면 곡선과 MPP의 위치도 함께 이동하기 때문에, <strong>고정된 저항 하나로는 절대 항상 최대 효율을 낼 수 없습니다.</strong></p>
+        <p>MPPT는 DC-DC 컨버터로 패널이 "느끼는" 등가 저항을 실시간으로 바꿔가며, 조건이 바뀔 때마다 새로운 MPP를 계속 쫓아가는 제어 알고리즘입니다.</p>
       </div>
-      <div style="margin-top:18px; text-align:center;">
-        <a href="mppt.html" style="display:inline-block; padding:10px 20px; border-radius:999px; background:var(--solar); color:#fff; text-decoration:none; font-weight:700; font-size:0.9rem;">🔎 태양광은 왜 최대 효율로 발전하지 못할까? MPPT 알고리즘 알아보기 →</a>
+      <div class="loadline-box">
+        <strong>아래 시뮬레이터의 "옴의 법칙: 고정 저항" 모드</strong>에서 저항 슬라이더를 움직여 보세요.
+        <ul style="margin-top:8px; padding-left:18px;">
+          <li>부하선(파란 점선)과 I-V 곡선의 교차점(파란 점)이 동작점입니다.</li>
+          <li>이 점의 출력과 진짜 최대 출력점(빨간 별)의 출력 차이가 바로 <strong>손실</strong>입니다.</li>
+          <li>일사량·온도·그늘 슬라이더를 바꾸면 곡선이 움직여도 저항은 그대로라, 효율이 계속 흔들리는 것을 볼 수 있습니다.</li>
+        </ul>
       </div>
     </div>
   </section>
 
-  <!-- 풍력 -->
-  <section class="energy" id="wind">
-    <div class="energy-header">
-      <div class="icon-badge" style="background:var(--wind)">💨</div>
-      <div>
-        <h2>풍력 에너지</h2>
-        <span class="subtitle">바람의 운동에너지로 터빈을 돌려 전기를 생산</span>
-      </div>
+  <!-- 시뮬레이터 -->
+  <section id="simulator">
+    <div class="section-head">
+      <h2>🎛️ 인터랙티브 시뮬레이터</h2>
+      <span>날씨(일사량·온도·그늘)를 직접 조절하고, MPPT 알고리즘이 최대 출력점을 쫓아가는 모습을 확인하세요.</span>
     </div>
-    <div class="card">
-      <p class="desc">바람이 많이 부는 지역에 풍력 터빈을 설치해 회전력을 전기로 변환합니다. 육상뿐 아니라 해상에도 대규모 단지를 조성할 수 있어 국내외에서 빠르게 성장하는 에너지원입니다.</p>
-      <div class="grid-4">
-        <div class="mini-box effect">
-          <h3>📌 효과</h3>
-          <ul>
-            <li>대규모 전력 공급으로 화석연료 대체</li>
-            <li>온실가스·대기오염 감소</li>
-            <li>해상풍력은 어업 자원과 병행 가능</li>
-          </ul>
+
+    <div class="sim-layout">
+      <div class="controls">
+        <div class="card">
+          <div class="control-group">
+            <label>☀️ 일사량 (G) <span class="val" id="gVal">1000 W/m²</span></label>
+            <input type="range" id="gSlider" min="100" max="1200" step="10" value="1000">
+            <div class="hint">햇빛의 세기. 낮을수록 전류(및 출력)가 줄어듭니다.</div>
+          </div>
+          <div class="control-group">
+            <label>🌡️ 온도 (T) <span class="val" id="tVal">25 ℃</span></label>
+            <input type="range" id="tSlider" min="-10" max="75" step="1" value="25">
+            <div class="hint">패널 온도가 높을수록 전압(Voc)이 떨어집니다.</div>
+          </div>
+          <div class="control-group">
+            <label>⛅ 부분 그늘 <span class="val" id="shVal">0 %</span></label>
+            <input type="range" id="shSlider" min="0" max="100" step="5" value="0">
+            <div class="hint">패널 일부(1/3)가 그늘질 때. 심하면 P-V 곡선에 봉우리가 두 개 생깁니다.</div>
+          </div>
         </div>
-        <div class="mini-box use">
-          <h3>🏭 활용 분야</h3>
-          <ul>
-            <li>육상·해상 풍력 발전 단지</li>
-            <li>도서·산간 지역 독립 전원</li>
-            <li>소형 풍력기(가로등, 선박 보조전원)</li>
-          </ul>
+
+        <div class="card">
+          <div class="mode-tabs">
+            <button id="tabOhm">옴의 법칙: 고정 저항</button>
+            <button id="tabMppt" class="active">MPPT 알고리즘 추적</button>
+          </div>
+
+          <div id="ohmPanel" style="display:none; margin-top:14px;">
+            <div class="control-group">
+              <label>🔌 부하 저항 (R) <span class="val" id="rVal">4.0 Ω</span></label>
+              <input type="range" id="rSlider" min="0.5" max="20" step="0.1" value="4">
+              <div class="hint">고정 저항을 연결했을 때 실제 동작점이 어디에 놓이는지 확인해 보세요.</div>
+            </div>
+          </div>
+
+          <div id="mpptPanel" style="margin-top:14px;">
+            <div class="algo-choices" id="algoChoices">
+              <label class="algo-choice active">
+                <input type="radio" name="algo" value="po" checked>
+                <span><strong>P&O (Perturb & Observe)</strong><span class="d">전압을 조금씩 바꿔보며 출력이 느는 방향으로 계속 이동. 도착 후에도 미세하게 흔들림.</span></span>
+              </label>
+              <label class="algo-choice">
+                <input type="radio" name="algo" value="inc">
+                <span><strong>Incremental Conductance</strong><span class="d">순간 기울기(dI/dV)를 계산해 방향을 정확히 판단. MPP 근처에서 흔들림 없이 정지.</span></span>
+              </label>
+              <label class="algo-choice">
+                <input type="radio" name="algo" value="cv">
+                <span><strong>Constant Voltage (S-CV)</strong><span class="d">개방전압의 약 76%로 한 번에 점프. 빠르지만 근사치라 오차가 있을 수 있음.</span></span>
+              </label>
+            </div>
+            <div class="btn-row" style="margin-top:12px;">
+              <button class="btn" id="startBtn">▶ 시작</button>
+              <button class="btn secondary" id="pauseBtn" disabled>일시정지</button>
+              <button class="btn warn" id="resetBtn">리셋</button>
+            </div>
+          </div>
         </div>
-        <div class="mini-box pro">
-          <h3>👍 장점</h3>
-          <ul>
-            <li>발전 단가가 신재생 에너지 중 낮은 편</li>
-            <li>넓은 면적 대비 대용량 발전 가능</li>
-            <li>야간에도 바람만 있으면 발전 가능</li>
-          </ul>
+
+        <div class="metrics" id="metrics">
+          <div>전압 <span class="mv" id="mV">-</span></div>
+          <div>전류 <span class="mv" id="mI">-</span></div>
+          <div>현재 출력 <span class="mv" id="mP">-</span></div>
+          <div>최대 가능 출력 <span class="mv" id="mPmax">-</span></div>
+          <div class="eff">효율 <span class="mv" id="mEff">-</span></div>
+          <div>스텝 <span class="mv" id="mStep">-</span></div>
         </div>
-        <div class="mini-box con">
-          <h3>👎 단점</h3>
-          <ul>
-            <li>바람 세기가 일정하지 않아 출력 변동</li>
-            <li>소음 및 경관 훼손 문제</li>
-            <li>조류 충돌 등 생태계 영향 우려</li>
-            <li>적지(바람이 좋은 부지)가 제한적</li>
-          </ul>
+      </div>
+
+      <div class="charts">
+        <div class="chart-row">
+          <div class="chart-box">
+            <h3>I-V 곡선 (전압-전류)</h3>
+            <canvas id="ivCanvas" width="820" height="520"></canvas>
+          </div>
+          <div class="chart-box">
+            <h3>P-V 곡선 (전압-출력) · 빨간 별 = 최대 출력점(MPP)</h3>
+            <canvas id="pvCanvas" width="820" height="520"></canvas>
+          </div>
         </div>
+        <div class="shade-note" id="shadeNote">⚠️ 그늘 때문에 P-V 곡선에 여러 개의 봉우리(지역 최대점)가 생겼습니다! 알고리즘이 진짜 최대점(빨간 별)이 아닌 가짜 봉우리(회색 점)에 갇힐 수 있습니다.</div>
       </div>
     </div>
   </section>
 
-  <!-- 수력 -->
-  <section class="energy" id="hydro">
-    <div class="energy-header">
-      <div class="icon-badge" style="background:var(--hydro)">💧</div>
-      <div>
-        <h2>수력 에너지</h2>
-        <span class="subtitle">물의 낙차와 흐름을 이용해 터빈을 회전시켜 발전</span>
-      </div>
+  <!-- 알고리즘 설명 -->
+  <section id="algorithms">
+    <div class="section-head">
+      <h2>🧠 세 가지 MPPT 알고리즘의 원리</h2>
+      <span>모두 "지금보다 더 좋은 지점"을 찾아간다는 목표는 같지만, 방법과 특성이 다릅니다.</span>
     </div>
-    <div class="card">
-      <p class="desc">댐이나 하천의 물 흐름, 낙차를 이용해 터빈을 돌려 전기를 생산합니다. 대규모 댐 발전부터 소하천을 이용하는 소수력 발전까지 규모가 다양합니다.</p>
-      <div class="grid-4">
-        <div class="mini-box effect">
-          <h3>📌 효과</h3>
-          <ul>
-            <li>안정적이고 예측 가능한 전력 생산</li>
-            <li>홍수 조절, 용수 공급 등 다목적 효과</li>
-            <li>온실가스 배출이 거의 없음</li>
-          </ul>
-        </div>
-        <div class="mini-box use">
-          <h3>🏞️ 활용 분야</h3>
-          <ul>
-            <li>대형 댐 수력 발전소</li>
-            <li>소하천 이용 소수력 발전</li>
-            <li>양수식 발전(에너지 저장용)</li>
-          </ul>
-        </div>
-        <div class="mini-box pro">
-          <h3>👍 장점</h3>
-          <ul>
-            <li>날씨 영향이 적어 발전량이 안정적</li>
-            <li>수명이 길고 운영비가 저렴</li>
-            <li>전력 수요에 맞춰 출력 조절 용이</li>
-          </ul>
-        </div>
-        <div class="mini-box con">
-          <h3>👎 단점</h3>
-          <ul>
-            <li>댐 건설로 인한 생태계·주거지 파괴</li>
-            <li>초기 건설비용과 기간이 큼</li>
-            <li>강수량 변화(가뭄)에 취약</li>
-            <li>적합한 지형이 제한적</li>
-          </ul>
-        </div>
+    <div class="algo-cards">
+      <div class="card algo-card po">
+        <h3 style="color:var(--po)">P&O (Perturb & Observe)</h3>
+        <ul>
+          <li>전압을 한 스텝 흔들어(perturb) 보고, 출력이 늘었으면 같은 방향으로, 줄었으면 반대 방향으로 계속 이동합니다.</li>
+          <li>구현이 간단하고 널리 쓰이지만, MPP에 도달한 뒤에도 계속 좌우로 흔들리며 <strong>미세한 손실(진동 손실)</strong>이 발생합니다.</li>
+          <li>그늘로 봉우리가 여러 개 생기면, 처음 출발 지점에 가까운 봉우리에 갇히기 쉽습니다.</li>
+        </ul>
+      </div>
+      <div class="card algo-card inc">
+        <h3 style="color:var(--inc)">Incremental Conductance</h3>
+        <ul>
+          <li>전류-전압의 순간 기울기(dI/dV)와 -I/V 값을 비교해 MPP 방향을 계산합니다. MPP에서는 dI/dV = -I/V가 성립합니다.</li>
+          <li>목표 지점에 가까워지면 흔들림 없이 정확히 멈출 수 있어 <strong>정확도가 가장 높습니다.</strong></li>
+          <li>계산이 P&O보다 조금 더 복잡하고, 그늘로 인한 지역 최대점 문제는 P&O와 동일하게 겪습니다.</li>
+        </ul>
+      </div>
+      <div class="card algo-card cv">
+        <h3 style="color:var(--cv)">Constant Voltage (S-CV)</h3>
+        <ul>
+          <li>"MPP 전압은 대략 개방전압(Voc)의 76% 근처"라는 경험적 사실을 이용해, 조건이 바뀔 때마다 그 지점으로 곧장 이동합니다.</li>
+          <li>탐색 과정이 없어 <strong>추적 속도가 가장 빠르지만</strong>, 실제 MPP와 항상 정확히 일치하지는 않아 정상 상태에서도 오차(손실)가 남습니다.</li>
+          <li>그늘로 곡선에 봉우리가 여러 개 생기면 76% 지점이 어느 봉우리와도 맞지 않아 오차가 더 커질 수 있습니다.</li>
+        </ul>
       </div>
     </div>
   </section>
 
-  <!-- 지열 -->
-  <section class="energy" id="geo">
-    <div class="energy-header">
-      <div class="icon-badge" style="background:var(--geo)">🌋</div>
-      <div>
-        <h2>지열 에너지</h2>
-        <span class="subtitle">지구 내부의 열을 끌어올려 전기·난방에 활용</span>
-      </div>
+  <!-- 비교 -->
+  <section id="compare">
+    <div class="section-head">
+      <h2>📊 세 알고리즘 비교하기</h2>
+      <span>현재 슬라이더 조건(일사량·온도·그늘)에서 세 알고리즘을 동시에 돌려 추적 속도·정확도·손실을 비교합니다.</span>
     </div>
     <div class="card">
-      <p class="desc">땅속 깊은 곳의 뜨거운 열(마그마열, 지하수열 등)을 이용해 증기를 만들어 터빈을 돌리거나, 냉난방 시스템(지열 히트펌프)에 직접 활용합니다.</p>
-      <div class="grid-4">
-        <div class="mini-box effect">
-          <h3>📌 효과</h3>
-          <ul>
-            <li>날씨와 무관하게 24시간 안정적 공급</li>
-            <li>냉난방 에너지 효율 대폭 개선</li>
-            <li>온실가스 배출이 매우 적음</li>
-          </ul>
-        </div>
-        <div class="mini-box use">
-          <h3>🏢 활용 분야</h3>
-          <ul>
-            <li>지열 발전소(화산·지진대 지역)</li>
-            <li>건물 냉난방용 지열 히트펌프</li>
-            <li>온천, 농업용 온실 난방</li>
-          </ul>
-        </div>
-        <div class="mini-box pro">
-          <h3>👍 장점</h3>
-          <ul>
-            <li>날씨·계절 영향 없이 연중 안정적</li>
-            <li>발전소 부지가 작아도 운영 가능</li>
-            <li>냉난방 동시 활용으로 효율 높음</li>
-          </ul>
-        </div>
-        <div class="mini-box con">
-          <h3>👎 단점</h3>
-          <ul>
-            <li>초기 시추·설비 비용이 매우 높음</li>
-            <li>적합한 지열 자원 지역이 한정적</li>
-            <li>지반 침하·소규모 지진 유발 가능성</li>
-          </ul>
-        </div>
+      <div class="compare-actions">
+        <button class="btn" id="compareBtn" style="max-width:340px;">현재 조건으로 3개 알고리즘 비교 실행</button>
       </div>
-    </div>
-  </section>
-
-  <!-- 바이오매스 -->
-  <section class="energy" id="bio">
-    <div class="energy-header">
-      <div class="icon-badge" style="background:var(--bio)">🌱</div>
-      <div>
-        <h2>바이오매스 에너지</h2>
-        <span class="subtitle">동식물 유기물(폐기물·작물 등)을 연료로 활용</span>
+      <div class="legend">
+        <span><i style="background:var(--po)"></i>P&O</span>
+        <span><i style="background:var(--inc)"></i>Incremental Conductance</span>
+        <span><i style="background:var(--cv)"></i>Constant Voltage</span>
       </div>
-    </div>
-    <div class="card">
-      <p class="desc">농업 부산물, 목재 폐기물, 음식물 쓰레기, 가축 분뇨 등 유기성 자원을 태우거나 발효시켜 열·전기·바이오연료(바이오디젤, 바이오가스 등)를 얻습니다.</p>
-      <div class="grid-4">
-        <div class="mini-box effect">
-          <h3>📌 효과</h3>
-          <ul>
-            <li>폐기물 재활용 및 처리 문제 해결</li>
-            <li>화석연료 사용 대체</li>
-            <li>탄소중립적 순환(식물이 자랄 때 흡수한 탄소만큼 배출)</li>
-          </ul>
-        </div>
-        <div class="mini-box use">
-          <h3>🚜 활용 분야</h3>
-          <ul>
-            <li>바이오매스 발전소(목재펠릿 등)</li>
-            <li>바이오디젤·바이오에탄올 연료</li>
-            <li>가축분뇨·음식물 폐기물 바이오가스화</li>
-            <li>농촌·산간 지역 난방</li>
-          </ul>
-        </div>
-        <div class="mini-box pro">
-          <h3>👍 장점</h3>
-          <ul>
-            <li>폐기물을 자원으로 재활용</li>
-            <li>기존 화력발전 설비를 일부 활용 가능</li>
-            <li>필요할 때 저장했다가 사용 가능</li>
-          </ul>
-        </div>
-        <div class="mini-box con">
-          <h3>👎 단점</h3>
-          <ul>
-            <li>연소 과정에서 대기오염물질 발생 가능</li>
-            <li>원료 수집·운반에 비용과 에너지 소모</li>
-            <li>대량 재배 시 산림 훼손·식량 경쟁 우려</li>
-          </ul>
-        </div>
+      <canvas id="compareCanvas" width="1600" height="480" style="width:100%; height:auto; display:block;"></canvas>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>알고리즘</th><th>수렴 스텝 (97% 도달)</th><th>최종 효율</th><th>정상상태 평균 효율(손실 지표)</th></tr>
+          </thead>
+          <tbody id="compareTbody">
+            <tr><td colspan="4" style="color:var(--muted)">아직 실행하지 않았습니다. 위 버튼을 눌러보세요.</td></tr>
+          </tbody>
+        </table>
       </div>
-    </div>
-  </section>
-
-  <!-- 조력/파력 -->
-  <section class="energy" id="tidal">
-    <div class="energy-header">
-      <div class="icon-badge" style="background:var(--tidal)">🌊</div>
-      <div>
-        <h2>조력·파력 에너지</h2>
-        <span class="subtitle">밀물·썰물의 조수간만 차와 파도의 힘을 이용</span>
-      </div>
-    </div>
-    <div class="card">
-      <p class="desc">조력 발전은 밀물과 썰물의 수위 차를 이용해 터빈을 돌리고, 파력 발전은 파도의 상하 운동 에너지를 전기로 변환합니다. 삼면이 바다인 한국에서 잠재력이 큰 에너지원입니다.</p>
-      <div class="grid-4">
-        <div class="mini-box effect">
-          <h3>📌 효과</h3>
-          <ul>
-            <li>조수·파도 주기가 규칙적이라 예측 가능</li>
-            <li>해안 지역 전력 자립도 향상</li>
-            <li>온실가스 배출 없는 청정 발전</li>
-          </ul>
-        </div>
-        <div class="mini-box use">
-          <h3>⚓ 활용 분야</h3>
-          <ul>
-            <li>조력 발전소(방조제 활용)</li>
-            <li>해상 파력 발전 부이·설비</li>
-            <li>등대·부표 등 해양 소형 전원</li>
-          </ul>
-        </div>
-        <div class="mini-box pro">
-          <h3>👍 장점</h3>
-          <ul>
-            <li>조수 주기가 일정해 발전량 예측이 쉬움</li>
-            <li>태양광·풍력과 달리 날씨 영향이 적음</li>
-            <li>넓은 해안선을 활용할 잠재력이 큼</li>
-          </ul>
-        </div>
-        <div class="mini-box con">
-          <h3>👎 단점</h3>
-          <ul>
-            <li>설치 가능한 지역(조차가 큰 해안)이 제한적</li>
-            <li>초기 건설 비용이 매우 높음</li>
-            <li>갯벌 생태계 파괴 우려</li>
-            <li>해수 부식으로 설비 유지보수 부담</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 비교표 -->
-  <section class="compare-section" id="compare">
-    <h2>📊 신재생 에너지 한눈에 비교하기</h2>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>에너지원</th>
-            <th>핵심 효과</th>
-            <th>대표 활용처</th>
-            <th>주요 장점</th>
-            <th>주요 단점</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>☀️ 태양광</td>
-            <td>온실가스·미세먼지 저감</td>
-            <td>건물 옥상, 대규모 발전소</td>
-            <td>무한한 자원, 소규모 설치 가능</td>
-            <td>일조량 의존, 야간 발전 불가</td>
-          </tr>
-          <tr>
-            <td>💨 풍력</td>
-            <td>대용량 청정 전력 공급</td>
-            <td>육상·해상 풍력 단지</td>
-            <td>낮은 발전 단가, 대용량 발전</td>
-            <td>바람 변동성, 소음·경관 문제</td>
-          </tr>
-          <tr>
-            <td>💧 수력</td>
-            <td>안정적 전력·홍수 조절</td>
-            <td>댐, 소수력 발전소</td>
-            <td>발전량 안정, 긴 수명</td>
-            <td>생태계 파괴, 높은 건설비</td>
-          </tr>
-          <tr>
-            <td>🌋 지열</td>
-            <td>24시간 안정적 냉난방·발전</td>
-            <td>지열 발전소, 냉난방 히트펌프</td>
-            <td>날씨 무관 연중 안정적</td>
-            <td>높은 시추 비용, 지역 한정</td>
-          </tr>
-          <tr>
-            <td>🌱 바이오매스</td>
-            <td>폐기물 재활용, 탄소순환</td>
-            <td>바이오연료, 목재펠릿 발전</td>
-            <td>폐자원 활용, 저장 가능</td>
-            <td>대기오염 가능성, 원료 운반 비용</td>
-          </tr>
-          <tr>
-            <td>🌊 조력·파력</td>
-            <td>예측 가능한 청정 전력</td>
-            <td>조력 발전소, 파력 부이</td>
-            <td>주기 예측 용이, 큰 잠재력</td>
-            <td>설치 지역 제한, 갯벌 훼손 우려</td>
-          </tr>
-        </tbody>
-      </table>
     </div>
   </section>
 
 </main>
 
 <footer>
-  🌍 신재생 에너지 학습 자료 · AISW교실 3기
+  ☀️ MPPT(최대전력점 추적) 학습 자료 · AISW교실 3기
 </footer>
 
-<a href="#" class="to-top" id="toTop">↑</a>
-
 <script>
-  // 네비게이션 활성화 표시 (스크롤 위치 기반)
-  const sections = document.querySelectorAll('section.energy, section.compare-section');
-  const navLinks = document.querySelectorAll('#nav-links a');
+(function(){
+  "use strict";
 
-  function setActiveLink() {
-    let currentId = '';
-    sections.forEach(sec => {
-      const rect = sec.getBoundingClientRect();
-      if (rect.top <= 100 && rect.bottom >= 100) {
-        currentId = sec.id;
-      }
-    });
-    navLinks.forEach(link => {
-      link.classList.toggle('active', link.getAttribute('href') === '#' + currentId);
-    });
+  var REF = { Voc: 37.0, Isc: 8.8, Vmp: 30.0, Imp: 8.3, Tref: 25, KvPct: -0.36, KiPct: 0.05 };
+  var N_SUB = 3;
+  var CV_RATIO = 0.76;
+
+  function clamp(x,a,b){ return Math.min(Math.max(x,a),b); }
+
+  function substringParams(Gi, T, vocFrac){
+    var VocRefI = REF.Voc*vocFrac;
+    var VmpRefI = REF.Vmp*vocFrac;
+    var tempFactorV = 1 + (REF.KvPct/100)*(T-REF.Tref);
+    var tempFactorI = 1 + (REF.KiPct/100)*(T-REF.Tref);
+    var gRatio = Math.max(Gi,0)/1000;
+    var lnTerm = Gi > 1 ? (1+0.05*Math.log(gRatio)) : 0.4;
+    var Voc = Math.max(VocRefI*tempFactorV*lnTerm, 0.01);
+    var Vmp = clamp(VmpRefI*tempFactorV*lnTerm, 0.001, Voc*0.95);
+    var Isc = Math.max(REF.Isc*gRatio*tempFactorI, 0.0002);
+    var Imp = clamp(REF.Imp*gRatio*tempFactorI, 0.00002, Isc*0.95);
+    var ratioI = Imp/Isc;
+    var ratioV = Vmp/Voc;
+    var C2 = (ratioV - 1)/Math.log(1-ratioI);
+    var C1 = (1-ratioI)*Math.exp(-Vmp/(C2*Voc));
+    return { Voc: Voc, Isc: Isc, Vmp: Vmp, Imp: Imp, C1: C1, C2: C2 };
   }
 
-  const toTopBtn = document.getElementById('toTop');
-  function toggleToTop() {
-    if (window.scrollY > 400) {
-      toTopBtn.classList.add('show');
+  function voltageAtCurrent(p, I){
+    if (I >= p.Isc) return 0;
+    var ratio = 1 + (1-I/p.Isc)/p.C1;
+    if (ratio <= 0) return p.Voc;
+    var V = p.C2*p.Voc*Math.log(ratio);
+    if (!isFinite(V) || isNaN(V)) V = 0;
+    return clamp(V, 0, p.Voc*1.02);
+  }
+
+  function buildCurve(G, T, shadowPct){
+    var fracs = [1/3, 1/3, 1/3];
+    var subs = [];
+    for (var i=0;i<N_SUB;i++){
+      var shadeFactor = (i === N_SUB-1) ? Math.max(0, 1-shadowPct/100) : 1;
+      subs.push(substringParams(G*shadeFactor, T, fracs[i]));
+    }
+    var IscMax = Math.max.apply(null, subs.map(function(s){ return s.Isc; }));
+    var STEPS = 400;
+    var Iarr = [], Varr = [];
+    for (var k=0;k<=STEPS;k++){
+      var I = IscMax*k/STEPS;
+      var V = 0;
+      for (var j=0;j<subs.length;j++){ V += voltageAtCurrent(subs[j], I); }
+      Iarr.push(I); Varr.push(V);
+    }
+    var Vasc = Varr.slice().reverse();
+    var Iasc = Iarr.slice().reverse();
+    var Parr = new Array(Vasc.length);
+    for (var m=0;m<Vasc.length;m++) Parr[m] = Vasc[m]*Iasc[m];
+
+    var mppIdx = 0;
+    for (var a=1;a<Parr.length;a++) if (Parr[a] > Parr[mppIdx]) mppIdx = a;
+
+    var localPeaks = [];
+    for (var b=2;b<Parr.length-2;b++){
+      if (b !== mppIdx && Parr[b] > Parr[b-1] && Parr[b] > Parr[b+1] && Parr[b] > Parr[b-2] && Parr[b] > Parr[b+2] && Parr[b] > Parr[mppIdx]*0.35){
+        localPeaks.push(b);
+      }
+    }
+
+    return { V: Vasc, I: Iasc, P: Parr, mppIdx: mppIdx, localPeaks: localPeaks, Voc: Vasc[Vasc.length-1], IscMax: IscMax };
+  }
+
+  function interpIforV(V, curve){
+    var arr = curve.V;
+    if (V <= arr[0]) return curve.I[0];
+    if (V >= arr[arr.length-1]) return curve.I[arr.length-1];
+    var lo = 0, hi = arr.length-1;
+    while (hi-lo > 1){
+      var mid = (lo+hi) >> 1;
+      if (arr[mid] <= V) lo = mid; else hi = mid;
+    }
+    var t = (V-arr[lo])/((arr[hi]-arr[lo]) || 1);
+    return curve.I[lo] + t*(curve.I[hi]-curve.I[lo]);
+  }
+
+  function findLoadIntersection(R, curve){
+    var lo = 0, hi = curve.Voc;
+    for (var it=0; it<40; it++){
+      var mid = (lo+hi)/2;
+      var diff = interpIforV(mid,curve) - mid/R;
+      if (diff > 0) lo = mid; else hi = mid;
+    }
+    var V = (lo+hi)/2;
+    return { V: V, I: interpIforV(V,curve) };
+  }
+
+  // ---- state ----
+  var state = {
+    G: 1000, T: 25, shadow: 0,
+    R: 4,
+    mode: 'mppt',
+    algo: 'po',
+    curve: null,
+    running: false,
+    timer: null,
+    step: 0,
+    trackV: 0,
+    Pprev: null,
+    direction: 1,
+    cvJumped: false,
+    trail: []
+  };
+
+  function recomputeCurve(){
+    state.curve = buildCurve(state.G, state.T, state.shadow);
+  }
+
+  function resetTracker(){
+    recomputeCurve();
+    state.step = 0;
+    state.trackV = 0.28*state.curve.Voc;
+    state.Pprev = null;
+    state.direction = 1;
+    state.cvJumped = false;
+    state.trail = [];
+    updateAll();
+  }
+
+  // ---- algorithm ticks ----
+  var DV_FRAC = 0.02;
+
+  function tickPO(curve){
+    var dV = DV_FRAC*curve.Voc;
+    var I = interpIforV(state.trackV, curve);
+    var P = state.trackV*I;
+    if (state.Pprev !== null && P < state.Pprev) state.direction *= -1;
+    state.Pprev = P;
+    state.trackV = clamp(state.trackV + state.direction*dV, 0, curve.Voc);
+  }
+
+  function tickInc(curve){
+    var dV = DV_FRAC*curve.Voc;
+    var V = state.trackV;
+    var I = interpIforV(V, curve);
+    var probe = Math.min(V+dV, curve.Voc);
+    var I2 = interpIforV(probe, curve);
+    var slope = (I2-I)/Math.max(probe-V, 1e-6);
+    var cond = -I/Math.max(V, 1e-6);
+    var eps = Math.abs(cond)*0.03 + 0.002;
+    if (Math.abs(slope-cond) < eps){
+      // 이미 MPP 조건(dI/dV = -I/V)에 근접 — 흔들리지 않고 유지
+    } else if (slope > cond){
+      state.trackV = clamp(V+dV, 0, curve.Voc);
     } else {
-      toTopBtn.classList.remove('show');
+      state.trackV = clamp(V-dV, 0, curve.Voc);
     }
   }
 
-  window.addEventListener('scroll', () => {
-    setActiveLink();
-    toggleToTop();
+  function tickCV(curve){
+    state.trackV = CV_RATIO*curve.Voc;
+    state.cvJumped = true;
+  }
+
+  function tickAlgo(algo, curve){
+    if (algo === 'po') tickPO(curve);
+    else if (algo === 'inc') tickInc(curve);
+    else tickCV(curve);
+  }
+
+  function currentPoint(){
+    var I = interpIforV(state.trackV, state.curve);
+    var P = state.trackV*I;
+    return { V: state.trackV, I: I, P: P };
+  }
+
+  // ---- UI wiring ----
+  var gSlider = document.getElementById('gSlider');
+  var tSlider = document.getElementById('tSlider');
+  var shSlider = document.getElementById('shSlider');
+  var rSlider = document.getElementById('rSlider');
+  var gVal = document.getElementById('gVal');
+  var tVal = document.getElementById('tVal');
+  var shVal = document.getElementById('shVal');
+  var rVal = document.getElementById('rVal');
+
+  gSlider.addEventListener('input', function(){
+    state.G = +gSlider.value;
+    gVal.textContent = state.G + ' W/m²';
+    recomputeCurve();
+    updateAll();
+  });
+  tSlider.addEventListener('input', function(){
+    state.T = +tSlider.value;
+    tVal.textContent = state.T + ' ℃';
+    recomputeCurve();
+    updateAll();
+  });
+  shSlider.addEventListener('input', function(){
+    state.shadow = +shSlider.value;
+    shVal.textContent = state.shadow + ' %';
+    recomputeCurve();
+    updateAll();
+  });
+  rSlider.addEventListener('input', function(){
+    state.R = +rSlider.value;
+    rVal.textContent = state.R.toFixed(1) + ' Ω';
+    updateAll();
   });
 
-  toTopBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  var tabOhm = document.getElementById('tabOhm');
+  var tabMppt = document.getElementById('tabMppt');
+  var ohmPanel = document.getElementById('ohmPanel');
+  var mpptPanel = document.getElementById('mpptPanel');
+
+  tabOhm.addEventListener('click', function(){
+    state.mode = 'ohm';
+    tabOhm.classList.add('active'); tabMppt.classList.remove('active');
+    ohmPanel.style.display = ''; mpptPanel.style.display = 'none';
+    stopRun();
+    updateAll();
   });
+  tabMppt.addEventListener('click', function(){
+    state.mode = 'mppt';
+    tabMppt.classList.add('active'); tabOhm.classList.remove('active');
+    mpptPanel.style.display = ''; ohmPanel.style.display = 'none';
+    updateAll();
+  });
+
+  var algoChoiceEls = document.querySelectorAll('.algo-choice');
+  algoChoiceEls.forEach(function(el){
+    el.addEventListener('click', function(){
+      var radio = el.querySelector('input');
+      radio.checked = true;
+      state.algo = radio.value;
+      algoChoiceEls.forEach(function(e2){ e2.classList.toggle('active', e2 === el); });
+      resetTracker();
+    });
+  });
+
+  var startBtn = document.getElementById('startBtn');
+  var pauseBtn = document.getElementById('pauseBtn');
+  var resetBtn = document.getElementById('resetBtn');
+
+  function startRun(){
+    if (state.running) return;
+    state.running = true;
+    startBtn.disabled = true;
+    pauseBtn.disabled = false;
+    state.timer = setInterval(function(){
+      tickAlgo(state.algo, state.curve);
+      state.step++;
+      var pt = currentPoint();
+      state.trail.push({ V: pt.V, I: pt.I, P: pt.P });
+      if (state.trail.length > 14) state.trail.shift();
+      updateAll();
+    }, 380);
+  }
+  function stopRun(){
+    state.running = false;
+    startBtn.disabled = false;
+    pauseBtn.disabled = true;
+    if (state.timer){ clearInterval(state.timer); state.timer = null; }
+  }
+
+  startBtn.addEventListener('click', startRun);
+  pauseBtn.addEventListener('click', stopRun);
+  resetBtn.addEventListener('click', function(){
+    stopRun();
+    resetTracker();
+  });
+
+  // ---- charts ----
+  var ivCanvas = document.getElementById('ivCanvas');
+  var pvCanvas = document.getElementById('pvCanvas');
+  var ivCtx = ivCanvas.getContext('2d');
+  var pvCtx = pvCanvas.getContext('2d');
+
+  function drawAxes(ctx, w, h, pad, xMax, yMax, xLabel, yLabel){
+    ctx.clearRect(0,0,w,h);
+    ctx.strokeStyle = '#e5e7eb';
+    ctx.lineWidth = 1;
+    ctx.font = '20px sans-serif';
+    ctx.fillStyle = '#9ca3af';
+    var gridN = 5;
+    for (var i=0;i<=gridN;i++){
+      var gx = pad + i*(w-2*pad)/gridN;
+      var gy = h-pad - i*(h-2*pad)/gridN;
+      ctx.beginPath(); ctx.moveTo(gx, pad); ctx.lineTo(gx, h-pad); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(pad, gy); ctx.lineTo(w-pad, gy); ctx.stroke();
+      var xDec = xMax < 10 ? 1 : 0;
+      var yDec = yMax < 10 ? 2 : (yMax < 50 ? 1 : 0);
+      ctx.fillText((xMax*i/gridN).toFixed(xDec), gx-10, h-pad+24);
+      ctx.fillText((yMax*i/gridN).toFixed(yDec), pad-44, gy+5);
+    }
+    ctx.strokeStyle = '#374151';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(pad,pad); ctx.lineTo(pad,h-pad); ctx.lineTo(w-pad,h-pad); ctx.stroke();
+    ctx.fillStyle = '#374151';
+    ctx.fillText(xLabel, w-pad-60, h-pad+46);
+    ctx.fillText(yLabel, pad-40 < 0 ? 4 : pad-44, pad-10);
+  }
+
+  function toPx(x,y,xMax,yMax,w,h,pad){
+    var px = pad + (x/xMax)*(w-2*pad);
+    var py = (h-pad) - (y/yMax)*(h-2*pad);
+    return [px,py];
+  }
+
+  function drawCurvePath(ctx, xs, ys, xMax, yMax, w, h, pad, color){
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    for (var i=0;i<xs.length;i++){
+      var p = toPx(xs[i], ys[i], xMax, yMax, w, h, pad);
+      if (i===0) ctx.moveTo(p[0],p[1]); else ctx.lineTo(p[0],p[1]);
+    }
+    ctx.stroke();
+  }
+
+  function drawDot(ctx, x, y, xMax, yMax, w, h, pad, color, r){
+    var p = toPx(x,y,xMax,yMax,w,h,pad);
+    ctx.fillStyle = color;
+    ctx.beginPath(); ctx.arc(p[0],p[1], r||9, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+  }
+
+  function drawStar(ctx, x, y, xMax, yMax, w, h, pad, color){
+    var p = toPx(x,y,xMax,yMax,w,h,pad);
+    var cx=p[0], cy=p[1], spikes=5, outer=16, inner=7;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    var rot = Math.PI/2*3;
+    var step = Math.PI/spikes;
+    ctx.moveTo(cx, cy-outer);
+    for (var i=0;i<spikes;i++){
+      var xo = cx + Math.cos(rot)*outer, yo = cy + Math.sin(rot)*outer;
+      ctx.lineTo(xo,yo); rot += step;
+      var xi = cx + Math.cos(rot)*inner, yi = cy + Math.sin(rot)*inner;
+      ctx.lineTo(xi,yi); rot += step;
+    }
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+  }
+
+  function renderCharts(){
+    var curve = state.curve;
+    var w = ivCanvas.width, h = ivCanvas.height, pad = 60;
+    var xMax = curve.Voc*1.08;
+    var yMaxI = curve.IscMax*1.15;
+    var yMaxP = curve.P[curve.mppIdx]*1.35;
+
+    drawAxes(ivCtx, w, h, pad, xMax, yMaxI, '전압 V (V)', '전류 I (A)');
+    drawCurvePath(ivCtx, curve.V, curve.I, xMax, yMaxI, w, h, pad, '#f5a623');
+
+    drawAxes(pvCtx, w, h, pad, xMax, yMaxP, '전압 V (V)', '출력 P (W)');
+    drawCurvePath(pvCtx, curve.V, curve.P, xMax, yMaxP, w, h, pad, '#f5a623');
+
+    curve.localPeaks.forEach(function(idx){
+      drawDot(pvCtx, curve.V[idx], curve.P[idx], xMax, yMaxP, w, h, pad, '#9ca3af', 8);
+    });
+    drawStar(pvCtx, curve.V[curve.mppIdx], curve.P[curve.mppIdx], xMax, yMaxP, w, h, pad, '#ef4444');
+    drawDot(ivCtx, curve.V[curve.mppIdx], curve.I[curve.mppIdx], xMax, yMaxI, w, h, pad, '#ef4444', 8);
+
+    if (state.mode === 'ohm'){
+      var isect = findLoadIntersection(state.R, curve);
+      ivCtx.strokeStyle = '#2563eb';
+      ivCtx.setLineDash([6,5]);
+      ivCtx.lineWidth = 2;
+      ivCtx.beginPath();
+      var p0 = toPx(0,0,xMax,yMaxI,w,h,pad);
+      var vEnd = Math.min(xMax, yMaxI*state.R);
+      var p1 = toPx(vEnd, vEnd/state.R, xMax, yMaxI, w, h, pad);
+      ivCtx.moveTo(p0[0],p0[1]); ivCtx.lineTo(p1[0],p1[1]); ivCtx.stroke();
+      ivCtx.setLineDash([]);
+      drawDot(ivCtx, isect.V, isect.I, xMax, yMaxI, w, h, pad, '#2563eb', 9);
+      drawDot(pvCtx, isect.V, isect.V*isect.I, xMax, yMaxP, w, h, pad, '#2563eb', 9);
+    } else {
+      var col = state.algo === 'po' ? '#2563eb' : (state.algo === 'inc' ? '#16a34a' : '#ea580c');
+      for (var i=0;i<state.trail.length;i++){
+        var t = state.trail[i];
+        var alpha = (i+1)/state.trail.length*0.5;
+        ivCtx.globalAlpha = alpha; pvCtx.globalAlpha = alpha;
+        drawDot(ivCtx, t.V, t.I, xMax, yMaxI, w, h, pad, col, 5);
+        drawDot(pvCtx, t.V, t.P, xMax, yMaxP, w, h, pad, col, 5);
+      }
+      ivCtx.globalAlpha = 1; pvCtx.globalAlpha = 1;
+      var pt = currentPoint();
+      drawDot(ivCtx, pt.V, pt.I, xMax, yMaxI, w, h, pad, col, 9);
+      drawDot(pvCtx, pt.V, pt.P, xMax, yMaxP, w, h, pad, col, 9);
+    }
+
+    document.getElementById('shadeNote').classList.toggle('show', curve.localPeaks.length > 0);
+  }
+
+  function updateMetrics(){
+    var curve = state.curve;
+    var pMax = curve.P[curve.mppIdx];
+    var V,I,P;
+    if (state.mode === 'ohm'){
+      var isect = findLoadIntersection(state.R, curve);
+      V = isect.V; I = isect.I; P = V*I;
+    } else {
+      var pt = currentPoint();
+      V = pt.V; I = pt.I; P = pt.P;
+    }
+    document.getElementById('mV').textContent = V.toFixed(2) + ' V';
+    document.getElementById('mI').textContent = I.toFixed(2) + ' A';
+    document.getElementById('mP').textContent = P.toFixed(1) + ' W';
+    document.getElementById('mPmax').textContent = pMax.toFixed(1) + ' W';
+    document.getElementById('mEff').textContent = Math.min(100, (P/pMax*100)).toFixed(1) + ' %';
+    document.getElementById('mStep').textContent = state.mode === 'ohm' ? '-' : state.step;
+  }
+
+  function updateAll(){
+    renderCharts();
+    updateMetrics();
+  }
+
+  // ---- compare ----
+  var compareBtn = document.getElementById('compareBtn');
+  var compareCanvas = document.getElementById('compareCanvas');
+  var compareCtx = compareCanvas.getContext('2d');
+  var compareTbody = document.getElementById('compareTbody');
+
+  function runHeadless(algo, curve, steps){
+    var s = { trackV: 0.28*curve.Voc, Pprev: null, direction: 1 };
+    var effs = [];
+    var pMax = curve.P[curve.mppIdx];
+    for (var i=0;i<steps;i++){
+      if (algo === 'po'){
+        var dV = DV_FRAC*curve.Voc;
+        var I = interpIforV(s.trackV, curve);
+        var P = s.trackV*I;
+        if (s.Pprev !== null && P < s.Pprev) s.direction *= -1;
+        s.Pprev = P;
+        s.trackV = clamp(s.trackV + s.direction*dV, 0, curve.Voc);
+      } else if (algo === 'inc'){
+        var dV2 = DV_FRAC*curve.Voc;
+        var V = s.trackV;
+        var Ii = interpIforV(V, curve);
+        var probe = Math.min(V+dV2, curve.Voc);
+        var I2 = interpIforV(probe, curve);
+        var slope = (I2-Ii)/Math.max(probe-V,1e-6);
+        var cond = -Ii/Math.max(V,1e-6);
+        var eps = Math.abs(cond)*0.03 + 0.002;
+        if (Math.abs(slope-cond) < eps){ /* hold */ }
+        else if (slope > cond) s.trackV = clamp(V+dV2, 0, curve.Voc);
+        else s.trackV = clamp(V-dV2, 0, curve.Voc);
+      } else {
+        s.trackV = CV_RATIO*curve.Voc;
+      }
+      var curI = interpIforV(s.trackV, curve);
+      var curP = s.trackV*curI;
+      effs.push(Math.min(100, curP/pMax*100));
+    }
+    return effs;
+  }
+
+  function summarize(effs){
+    var conv = effs.length;
+    for (var i=0;i<effs.length;i++){
+      if (effs[i] >= 97){ conv = i+1; break; }
+    }
+    var tail = effs.slice(Math.max(0, effs.length-10));
+    var avg = tail.reduce(function(a,b){return a+b;},0)/tail.length;
+    return { conv: conv, final: effs[effs.length-1], avg: avg };
+  }
+
+  compareBtn.addEventListener('click', function(){
+    var curve = state.curve;
+    var STEPS = 30;
+    var results = {
+      po: runHeadless('po', curve, STEPS),
+      inc: runHeadless('inc', curve, STEPS),
+      cv: runHeadless('cv', curve, STEPS)
+    };
+
+    var w = compareCanvas.width, h = compareCanvas.height, pad = 70;
+    drawAxes(compareCtx, w, h, pad, STEPS, 100, '스텝', '효율 (%)');
+    drawCurvePath(compareCtx, range(STEPS).map(function(i){return i+1;}), results.po, STEPS, 100, w, h, pad, '#2563eb');
+    drawCurvePath(compareCtx, range(STEPS).map(function(i){return i+1;}), results.inc, STEPS, 100, w, h, pad, '#16a34a');
+    drawCurvePath(compareCtx, range(STEPS).map(function(i){return i+1;}), results.cv, STEPS, 100, w, h, pad, '#ea580c');
+
+    var rows = [
+      { name: 'P&O', color: '#2563eb', s: summarize(results.po) },
+      { name: 'Incremental Conductance', color: '#16a34a', s: summarize(results.inc) },
+      { name: 'Constant Voltage', color: '#ea580c', s: summarize(results.cv) }
+    ];
+    compareTbody.innerHTML = rows.map(function(r){
+      return '<tr><td style="color:'+r.color+'; font-weight:700;">'+r.name+'</td>' +
+        '<td>'+r.s.conv+' 스텝</td>' +
+        '<td>'+r.s.final.toFixed(1)+' %</td>' +
+        '<td>'+r.s.avg.toFixed(1)+' %</td></tr>';
+    }).join('');
+  });
+
+  function range(n){ var a=[]; for (var i=0;i<n;i++) a.push(i); return a; }
+
+  // ---- nav active-link + init ----
+  var sections = document.querySelectorAll('main section');
+  var navLinks = document.querySelectorAll('#nav-links a');
+  window.addEventListener('scroll', function(){
+    var currentId = '';
+    sections.forEach(function(sec){
+      var rect = sec.getBoundingClientRect();
+      if (rect.top <= 100 && rect.bottom >= 100) currentId = sec.id;
+    });
+    navLinks.forEach(function(link){
+      link.classList.toggle('active', link.getAttribute('href') === '#' + currentId);
+    });
+  });
+
+  resetTracker();
+})();
 </script>
 
 </body>
